@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chars-pod
+  namespace: chars-system
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: chars
+  template:
+    metadata:
+      labels:
+        app: chars
+    spec:
+      containers:
+        - name: chars-api
+          resources:
+            limits:
+              cpu: "2000m"
+            requests:
+              cpu: "1000m"

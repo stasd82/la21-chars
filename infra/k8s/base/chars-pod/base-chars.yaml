@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chars-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chars-pod
+  namespace: chars-system
+spec:
+  selector:
+    matchLabels:
+      app: chars
+  template:
+    metadata:
+      labels:
+        app: chars
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: chars-api
+        image: chars-api-image
+        ports:
+        - name: chars-api
+          containerPort: 3000
+        - name: chars-api-debug
+          containerPort: 4000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chars-service
+  namespace: chars-system
+spec:
+  type: ClusterIP
+  selector:
+    app: chars
+  ports:
+  - name: chars-api
+    port: 3000
+    targetPort: chars-api
+  - name: chars-api-debug
+    port: 4000
+    targetPort: chars-api-debug
+  
