@@ -107,8 +107,29 @@ func run(sl *zap.SugaredLogger) error {
 		}
 	}()
 
+	// -----------------------------------------------------------
+	// Start API Service
+
+	sl.Infow("startup", "status", "init API support")
+
+	svcErrors := make(chan error, 1)
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
+
+	api := http.Server{
+		Addr:         cfg.Web.APIHost,
+		Handler:      nil,
+		ReadTimeout:  cfg.Web.ReadTimeout,
+		WriteTimeout: cfg.Web.WriteTimeout,
+		IdleTimeout:  cfg.Web.IdleTimeout,
+		ErrorLog:     zap.NewStdLog(sl.Desugar()),
+	}
+
+	go func() {
+		sl.Infow("startup", "status", "API router started", "host", cfg.Web.APIHost)
+		svcErrors <- api.ListenAndServe()
+	}()
+
 	<-shutdown
 
 	return nil
