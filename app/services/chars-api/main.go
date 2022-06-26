@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"expvar"
 	"fmt"
@@ -130,7 +131,24 @@ func run(sl *zap.SugaredLogger) error {
 		svcErrors <- api.ListenAndServe()
 	}()
 
-	<-shutdown
+	// -----------------------------------------------------------
+	// Graceful Shutdown
+
+	select {
+	case err := <-svcErrors:
+		return fmt.Errorf("svc error: %w", err)
+	case sig := <-shutdown:
+		sl.Infow("shutdown", "status", "shutdown started", "signal", sig)
+		defer sl.Infow("shutdown", "status", "shutdown completed", "signal", sig)
+
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
+		defer cancel()
+
+		if err := api.Shutdown(ctx); err != nil {
+			api.Close()
+			return fmt.Errorf("could not stop server gracefully: %w", err)
+		}
+	}
 
 	return nil
 }
