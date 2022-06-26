@@ -1,0 +1,26 @@
+FROM golang:1.18 as build-chars-api
+ENV CGO_ENABLED 0
+ARG BUILD_REF
+
+COPY . /svc
+
+WORKDIR /svc/app/services/chars-api
+RUN go build -ldflags "-X main.build=${BUILD_REF}"
+
+
+FROM alpine:3.16
+ARG BUILD_DATE
+ARG BUILD_REF
+RUN addgroup -g 1000 -S xf && \
+    adduser -u 1000 -h /svc -G xf -S xf
+COPY --from=build-chars-api --chown=xf:xf /svc/app/services/chars-api/chars-api /svc/chars-api
+WORKDIR /svc
+USER xf
+CMD ["./chars-api"]
+
+LABEL org.opencontainers.image.created="${BUILD_DATE}" \
+    org.opencontainers.image.title="chars-api" \
+    org.opencontainers.image.authors="sta <stasd82@yandex.ru>" \
+    org.opencontainers.image.source="https://github.com/stasd82/la21-chars" \
+    org.opencontainers.image.revision="${BUILD_REF}" \
+    org.opencontainers.image.vendor="stasd82"
