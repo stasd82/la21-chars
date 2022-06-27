@@ -100,7 +100,7 @@ func run(sl *zap.SugaredLogger) error {
 
 	sl.Infow("startup", "status", "debug router started", "host", cfg.Web.DebugHost)
 
-	debugMux := handlers.DebugStandardLibraryMux()
+	debugMux := handlers.DebugMux(build, sl)
 
 	go func() {
 		if err := http.ListenAndServe(cfg.Web.DebugHost, debugMux); err != nil {
@@ -117,9 +117,14 @@ func run(sl *zap.SugaredLogger) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
+	apiMux := handlers.APIMux(handlers.APIMuxConfig{
+		Log:      sl,
+		Shutdown: shutdown,
+	})
+
 	api := http.Server{
 		Addr:         cfg.Web.APIHost,
-		Handler:      nil,
+		Handler:      apiMux,
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 		IdleTimeout:  cfg.Web.IdleTimeout,
@@ -149,6 +154,8 @@ func run(sl *zap.SugaredLogger) error {
 			return fmt.Errorf("could not stop server gracefully: %w", err)
 		}
 	}
+
+	// -----------------------------------------------------------
 
 	return nil
 }
