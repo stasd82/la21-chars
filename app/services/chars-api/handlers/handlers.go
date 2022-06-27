@@ -6,6 +6,7 @@ import (
 	"net/http/pprof"
 	"os"
 
+	"github.com/stasd82/la21-chars/app/services/chars-api/handlers/debug/checkgrp"
 	"github.com/stasd82/tux"
 	"go.uber.org/zap"
 )
@@ -37,6 +38,13 @@ func debugStdLibMux() *http.ServeMux {
 
 func DebugMux(build string, log *zap.SugaredLogger) http.Handler {
 	mux := debugStdLibMux()
+
+	cgh := checkgrp.Handlers{
+		Build: build,
+		Log:   log,
+	}
+	mux.HandleFunc("/debug/readiness", cgh.Readiness)
+	mux.HandleFunc("/debug/liveness", cgh.Liveness)
 
 	return mux
 }
