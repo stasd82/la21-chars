@@ -14,13 +14,17 @@ type Route func(context.Context, http.ResponseWriter, *http.Request) error
 
 type Tux struct {
 	*bunrouter.CompatRouter
+
 	shutdown chan os.Signal
+	ct       []Circuit
 }
 
-func New(c chan os.Signal) *Tux {
+// New creates a Tux value that handle a set of routes for the application.
+func New(shutdown chan os.Signal, ct ...Circuit) *Tux {
 	return &Tux{
 		CompatRouter: bunrouter.New().Compat(),
-		shutdown:     c,
+		shutdown:     shutdown,
+		ct:           ct,
 	}
 }
 
@@ -30,16 +34,23 @@ func (t *Tux) Finish() {
 }
 
 // AddRoute registers the route (handler) function for the given pattern.
-func (t *Tux) AddRoute(verb string, group string, path string, route Route) {
+func (t *Tux) AddRoute(verb string, group string, path string, route Route, ct ...Circuit) {
 
+	// Wrap route specific middleware around this handler first.
+	route = warmupCircuit(ct, route)
+
+	// Add app general middleware to the handler chain.
+	route = warmupCircuit(t.ct, route)
+
+	// The function to execute for each request.
 	h := func(w http.ResponseWriter, r *http.Request) {
-
 		ctx := context.TODO()
+
+		// Call the wrapped handler function.
 		if err := route(ctx, w, r); err != nil {
 			t.Finish()
 			return
 		}
-
 	}
 
 	team := t.NewGroup("/" + group)

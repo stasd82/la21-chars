@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"expvar"
 	"net/http"
 	"net/http/pprof"
@@ -33,20 +32,20 @@ func APIMux(cfg APIMuxConfig) http.Handler {
 	return mux
 }
 
-func bindV1(tux *tux.Tux, cfg APIMuxConfig) {
+func bindV1(t *tux.Tux, cfg APIMuxConfig) {
 	const version = "v1"
 
 	// Test handler for the development and testing.
 	route := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-		st := struct {
+		msg := struct {
 			Message string
 		}{
-			Message: "hello world",
+			Message: "yey!",
 		}
-		return json.NewEncoder(w).Encode(st)
+		return tux.Respond(ctx, w, msg, http.StatusOK)
 	}
 
-	tux.AddRoute(http.MethodGet, version, "/test", route)
+	t.AddRoute(http.MethodGet, version, "/test", route)
 }
 
 func debugStdLibMux() *http.ServeMux {
