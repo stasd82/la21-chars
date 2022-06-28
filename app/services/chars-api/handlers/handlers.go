@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/stasd82/la21-chars/app/services/chars-api/handlers/debug/checkgrp"
+	"github.com/stasd82/la21-chars/domain/web/mid"
 	"github.com/stasd82/tux"
 	"go.uber.org/zap"
 )
@@ -23,6 +24,7 @@ func APIMux(cfg APIMuxConfig) http.Handler {
 	if mux == nil {
 		mux = tux.New(
 			cfg.Shutdown,
+			mid.Logger(cfg.Log),
 		)
 	}
 
@@ -40,7 +42,7 @@ func bindV1(t *tux.Tux, cfg APIMuxConfig) {
 		msg := struct {
 			Message string
 		}{
-			Message: "yey!",
+			Message: "yey",
 		}
 		return tux.Respond(ctx, w, msg, http.StatusOK)
 	}
