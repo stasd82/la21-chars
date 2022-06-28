@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
 	"expvar"
 	"net/http"
 	"net/http/pprof"
@@ -16,11 +18,35 @@ type APIMuxConfig struct {
 	Log      *zap.SugaredLogger
 }
 
-func APIMux(cfg APIMuxConfig) *tux.Tux {
+func APIMux(cfg APIMuxConfig) http.Handler {
+	var mux *tux.Tux
 
-	t := tux.New(cfg.Shutdown)
+	if mux == nil {
+		mux = tux.New(
+			cfg.Shutdown,
+		)
+	}
 
-	return t
+	// Load the routes for different versions of the API.
+	bindV1(mux, cfg)
+
+	return mux
+}
+
+func bindV1(tux *tux.Tux, cfg APIMuxConfig) {
+	const version = "v1"
+
+	// Test handler for the development and testing.
+	route := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+		st := struct {
+			Message string
+		}{
+			Message: "hello world",
+		}
+		return json.NewEncoder(w).Encode(st)
+	}
+
+	tux.AddRoute(http.MethodGet, version, "/test", route)
 }
 
 func debugStdLibMux() *http.ServeMux {

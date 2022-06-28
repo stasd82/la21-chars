@@ -42,7 +42,7 @@ func main() {
 		}
 
 		// I like always having a traceid present in the logs.
-		traceID := "00000000-0000-0000-0000-000000000000"
+		traceID := "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 		if v, ok := m["traceid"]; ok {
 			traceID = fmt.Sprintf("%v", v)
 		}
