@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"os"
 	"syscall"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/uptrace/bunrouter"
 )
 
@@ -44,7 +46,13 @@ func (t *Tux) AddRoute(verb string, group string, path string, route Route, ct .
 
 	// The function to execute for each request.
 	h := func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.TODO()
+		ctx := r.Context()
+
+		v := Values{
+			TraceID: uuid.New().String(),
+			Now:     time.Now(),
+		}
+		ctx = context.WithValue(ctx, key, &v)
 
 		// Call the wrapped handler function.
 		if err := route(ctx, w, r); err != nil {
