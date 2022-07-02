@@ -16,14 +16,17 @@ func Logger(sl *zap.SugaredLogger) (c tux.Circuit) {
 
 			v, err := tux.GetValues(ctx)
 			if err != nil {
-				return
+				return tux.NewShutdownError("web value is missing from context")
 			}
 
 			sl.Infow("request started", "traceid", v.TraceID, "method", r.Method, "path", r.URL.Path,
 				"remoteaddr", r.RemoteAddr)
+
+			// Call the next handler.
 			{
 				err = in(ctx, w, r)
 			}
+
 			sl.Infow("request completed", "traceid", v.TraceID, "method", r.Method, "path", r.URL.Path,
 				"remoteaddr", r.RemoteAddr, "statuscode", v.StatusCode, "since", time.Since(v.Now))
 

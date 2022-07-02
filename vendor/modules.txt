@@ -4,7 +4,7 @@ github.com/ardanlabs/conf/v3
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
-# github.com/stasd82/tux v0.0.7
+# github.com/stasd82/tux v0.0.8
 ## explicit; go 1.18
 github.com/stasd82/tux
 # github.com/uptrace/bunrouter v1.0.17
