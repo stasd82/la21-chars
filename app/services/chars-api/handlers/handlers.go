@@ -27,6 +27,7 @@ func APIMux(cfg APIMuxConfig) http.Handler {
 			cfg.Shutdown,
 			mid.Logger(cfg.Log),
 			mid.Errors(cfg.Log),
+			mid.Metrics(),
 			mid.Panics(),
 		)
 	}
@@ -46,7 +47,7 @@ func bindV1(t *tux.Tux, cfg APIMuxConfig) {
 			// return errors.New("untrusted error")
 			// return tux.NewShutdownError("going down")
 			// return v1.NewRequestErr(errors.New("trusted error"), http.StatusBadGateway)
-			panic("testing panics")
+			// panic("testing panics")
 		}
 
 		msg := struct {

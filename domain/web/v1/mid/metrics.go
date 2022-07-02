@@ -2,28 +2,26 @@ package mid
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"runtime/debug"
 
 	"github.com/stasd82/la21-chars/domain/web/metrics"
 	"github.com/stasd82/tux"
 )
 
-func Panics() (c tux.Circuit) {
+func Metrics() (c tux.Circuit) {
 	c = func(in tux.Route) (out tux.Route) {
 		out = func(ctx context.Context, w http.ResponseWriter, r *http.Request) (err error) {
+			ctx = metrics.Set(ctx)
+			{
+				err = in(ctx, w, r)
+			}
+			metrics.AddRequests(ctx)
+			metrics.AddGoroutines(ctx)
 
-			defer func() {
-				if rec := recover(); rec != nil {
-					trace := debug.Stack()
-					err = fmt.Errorf("PANIC [%v] TRACE[%s]", rec, string(trace))
-
-					metrics.AddPanics(ctx)
-				}
-			}()
-
-			return in(ctx, w, r)
+			if err != nil {
+				metrics.AddErrors(ctx)
+			}
+			return
 		}
 		return
 	}
