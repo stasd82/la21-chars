@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"expvar"
 	"math/rand"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 	"os"
 
 	"github.com/stasd82/la21-chars/app/services/chars-api/handlers/debug/checkgrp"
-	v1 "github.com/stasd82/la21-chars/domain/web/v1"
 	"github.com/stasd82/la21-chars/domain/web/v1/mid"
 	"github.com/stasd82/tux"
 	"go.uber.org/zap"
@@ -29,6 +27,7 @@ func APIMux(cfg APIMuxConfig) http.Handler {
 			cfg.Shutdown,
 			mid.Logger(cfg.Log),
 			mid.Errors(cfg.Log),
+			mid.Panics(),
 		)
 	}
 
@@ -46,7 +45,8 @@ func bindV1(t *tux.Tux, cfg APIMuxConfig) {
 		if rand.Intn(100)%2 == 0 {
 			// return errors.New("untrusted error")
 			// return tux.NewShutdownError("going down")
-			return v1.NewRequestErr(errors.New("trusted error"), http.StatusBadGateway)
+			// return v1.NewRequestErr(errors.New("trusted error"), http.StatusBadGateway)
+			panic("testing panics")
 		}
 
 		msg := struct {
